@@ -76,4 +76,4 @@ target/
 
 .DS_Store
 
-generated-fv/*.mat
+generated-fv/*.matpaper/*.out
