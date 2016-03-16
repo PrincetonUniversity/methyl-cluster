@@ -77,3 +77,4 @@ target/
 .DS_Store
 
 generated-fv/*.matpaper/*.out
+data
