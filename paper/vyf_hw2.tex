@@ -2,6 +2,8 @@
 \usepackage{cos424,times}
 \usepackage{hyperref}
 \usepackage{url}
+\usepackage{float}
+
 \usepackage{graphicx}
 
 \input{defs}
@@ -33,16 +35,41 @@ In our case, $S$ is a tuple over various biological information: chromosome numb
 
 Predicting whether the proportion of methylated sites from a sample is at least half has been done with over 90\% accuracy by relying on methylation levels of nearby sites, DNA sequence properties such as ENCODE, and genomic position to the extent that the site is co-located (in the binary sense) with a DNA sequence for a particular protein or a sequence for a cis-regulartory element (CRE) \cite{zhang2015predicting}. Other studies have also found co-localization between CREs and CpGs (sites where the methylation occurs) \cite{ziller2013charting}.
 
-\section{Data}
+\section{Exploratory Data Analysis}
 
 We focus our analysis mainly on chromosome 1, which has samples from 379551 sites. There are 33 samples for each site, each taken from an expensive WGBS procedure, this method is able to measure about 91\% of sites \cite{laird2010principles}. Our test sample only has about 2\% of the sites available from a cheaper procedure: methylation microarrays \cite{zhang2015predicting}.
 
 We are to use the limited information to impute the missing values in the sample. Because we can only use WGBS as the true value, there are some sites that we don't know the correct value for, even in testing. The imputation procedure may {\em not} be specified to only impute the sites we are testing for because this is a facet of our testing procedure. The methods constructed attempt to impute the entire genome. We are only able to provide an estimate for our testing error because we can only observe some of the true methylation values with the more expensive technique.
 
-%TODO is this necessary here?
-The sites available at test time are consistent - the technology used to assay the methylation values samples sites consistently - bare collaborative filtering solves a larger problem where the new sample may be missing values at different sites, so it cannot take advantage of learning patterns particular to the sites consistently tested by the methylation microarrays \cite{infinium}.
+The sites available at test time are consistent - the technology used to assay the methylation values samples sites consistently \cite{infinium}. This opens up opportunities to take advantage of learning patterns particular to the sites consistently tested by the methylation microarrays - for instance, we can mask one of the well-sampled chromosomes enabling a sort of ``cross-validation" on a reduced feature set.
 
-%TODO cdf of known positions.
+\begin{figure}[H]
+    \centering
+    
+    \begin{minipage}[b]{0.3\textwidth}
+        \includegraphics[width=\textwidth]{qqtest.png}
+        %\caption{}
+    \end{minipage}
+    \hspace{0.15\textwidth}
+    \begin{minipage}[b]{0.4\textwidth}
+        \includegraphics[width=\textwidth]{adjhist.png}
+        %\caption{}
+    \end{minipage}
+    
+    \label{fig:sampleknowndistrib}
+    \caption{The above demonstrates the distribution of the known sites in the test chromosome. The mean distance between sites is 50.3, with a standard deviation of 87.0. The QQ-plot demonstrates that the sampling is fairly uniform throughout the chromosome.}
+\end{figure}
+
+The microarray may only provide about 2\% of the chromosome's information, but it may give enough to find chromosome-wide patterns as in Figure \ref{fig:sampleknowndistrib}. The uniformity here, coupled with the observations of correlation amongst neighboring sites from Figure \ref{fig:colocalsite} informs us local values may be informative.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.4\textwidth]{colocalisitecorr.png}
+    \label{fig:colocalsite}
+    \caption{The above demonstrates estimates for the correlation of methylation values with the neighbours a given distance away from a sample site on the same chromosome. The correlation across 32 of the 33 given chromosomes was taken. The last chromosome was dropped due to its 98\% sparsity. The ``bottoming out" of correlation at about 0.25 as we distance ourselves from the site matches the observed background correlation from \cite{zhang2015predicting}.}
+\end{figure}
+
+%TODO chromosome-level patterns.
 
 \section{Methods}
 
