@@ -33,7 +33,7 @@ Imputation is a general statistical process involving replacing unknown values w
 
 In our case, $S$ is a tuple over various biological information: chromosome number, genomic offset, strand type (3'-5' or 5'-3'), and methylation, the proportion of sites in a laboratory sample that had an additional methyl group attached to a cytosine molecule. The methylation count in our data set may be missing information.
 
-Predicting whether the proportion of methylated sites from a sample is at least half has been done with over 90\% accuracy by relying on methylation levels of nearby sites, DNA sequence properties such as ENCODE, and genomic position to the extent that the site is co-located (in the binary sense) with a DNA sequence for a particular protein or a sequence for a cis-regulartory element (CRE) \cite{zhang2015predicting}. Other studies have also found co-localization between CREs and CpGs (sites where the methylation occurs) \cite{ziller2013charting}.
+Predicting whether the proportion of methylated sites from a sample is at least half has been done with over 90\% accuracy by relying on methylation levels of nearby sites, sequence-encoded information such as genetic context, and genomic position to the extent that the site is co-located (in the binary sense) with a DNA sequence for a particular protein or a sequence for a cis-regulartory element (CRE) \cite{zhang2015predicting}. Other studies have also found co-localization between CREs and CpGs (sites where the methylation occurs) \cite{ziller2013charting}.
 
 \section{Exploratory Data Analysis}
 
@@ -78,18 +78,24 @@ We explore whether there's potential for (1) prediction based on genomic locatio
     \caption{Rolling mean with 1000 bp windows of methylation values for varying tissues. In order, the standard deviation ratio from the original tissue methylation values to the rolled mean ones are 4.83, 4.62, and 11.34. Note that this is the square root of the inverse of proportion of variance maintained by the rolling mean.}
 \end{figure}
 
-Finally, we discuss the sparsity of the chromosomes - all 34 training tissues except the last have no methylation proportions (betas) under 0.01 for any site. The last has about 98\% such values. Of the limited amount of known sites for the test chromosome, none of our sites have such low methylations either. In the following, the last chromosome will be excluded from certain aggregates to avoid skewing certain statistics. However, it may still prove useful for prediction, and may be included as an explanatory variable.
-
-%TODO encode info
-
+%TODO (once added) \CITE{} below too -> genetic context (intronic, ex, etc).
+As recommended by \cite{zhang2015predicting}, additional info from the ENCODE project was retrieved, corresponding to the indicators that a given site is within the context of a transcription factor CRE. This introduces 161 binary features, which are used alongside the strand direction information as additional inputs compared to the other tissue methylation samples alone \cite{encode2004encode}.
 \section{Methods}
 
-Recall there are 34 sample tissues. Models were evaluated by average cross-validation performance by supplying 33 tissues with near-full methylation information and 1 sample with only the methylation sites revealed by the 2\%-sampling microarray mechanism \cite{infinium}. This enables us to have 33 folds (we don't evaluate our models on the sparse-methylation tissue, number 33). 
+Recall there are 34 sample tissues. Models were evaluated by average cross-validation performance by supplying 33 tissues with near-full methylation information and 1 sample with only the methylation sites revealed by the 2\%-sampling microarray mechanism \cite{infinium}. However, only 6 folds were performed, because certain tissue samples were sparse or highly uncorrelated with the any of the rest, and would be poor candidates for model selection for our test chromosome, see Figure \ref{fig:chromacorr}).
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[scale=0.3]{chromacorr.png}
+    \label{fig:chromacorr}
+    \caption{Using only the training data, it was found that the closes training sample was chromosome 19. Thus, we estimate from the diagram above that chromosomes 19-24, inclusive, will be good folds to train our models on (by pretending they each only have limited methylation information).}
+\end{figure} 
 
 A fundamental assumption here is that the additional tissue data at test time on the holdout tissue sample will not significantly worsen the top model from cross-validation. This is a fair assumption since the model was selected with 33 similar features.
+
 %TODO basic collab filtering (memory/similarity based, svd).
+%TODO gmm with covar on local items
 %TODO glm + look at coeffs to find predictive chromosomes. -> source for "similar methylation" if similar organs.
-%TODO add ENCODE data.
 %TODO vector machine
 
 \section{Results}
@@ -99,7 +105,7 @@ A fundamental assumption here is that the additional tissue data at test time on
 
 \subsubsection*{Acknowledgments}
 
-The author would like to thank Prof. Engelhardt and Brian Jo for their advice on this project and Princeton University for access to certain references.
+The author would like to thank Prof. Engelhardt and Brian Jo for their advice on this project and Princeton University for access to certain references. %TODO thank encode.
 
 \bibliographystyle{acm}
 \bibliography{ref}
