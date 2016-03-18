@@ -75,13 +75,18 @@ We explore whether there's potential for (1) prediction based on genomic locatio
     \centering
     \includegraphics[width=0.9\textwidth]{genomictrends.png}
     \label{fig:genomictrends}
-    \caption{Rolling mean with 1000 bp windows of methylation values for varying tissues.}
+    \caption{Rolling mean with 1000 bp windows of methylation values for varying tissues. In order, the standard deviation ratio from the original tissue methylation values to the rolled mean ones are 4.83, 4.62, and 11.34. Note that this is the square root of the inverse of proportion of variance maintained by the rolling mean.}
 \end{figure}
 
 Finally, we discuss the sparsity of the chromosomes - all 34 training tissues except the last have no methylation proportions (betas) under 0.01 for any site. The last has about 98\% such values. Of the limited amount of known sites for the test chromosome, none of our sites have such low methylations either. In the following, the last chromosome will be excluded from certain aggregates to avoid skewing certain statistics. However, it may still prove useful for prediction, and may be included as an explanatory variable.
 
+%TODO encode info
+
 \section{Methods}
 
+Recall there are 34 sample tissues. Models were evaluated by average cross-validation performance by supplying 33 tissues with near-full methylation information and 1 sample with only the methylation sites revealed by the 2\%-sampling microarray mechanism \cite{infinium}. This enables us to have 33 folds (we don't evaluate our models on the sparse-methylation tissue, number 33). 
+
+A fundamental assumption here is that the additional tissue data at test time on the holdout tissue sample will not significantly worsen the top model from cross-validation. This is a fair assumption since the model was selected with 33 similar features.
 %TODO basic collab filtering (memory/similarity based, svd).
 %TODO glm + look at coeffs to find predictive chromosomes. -> source for "similar methylation" if similar organs.
 %TODO add ENCODE data.
