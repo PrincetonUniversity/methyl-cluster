@@ -37,7 +37,7 @@ Predicting whether the proportion of methylated sites from a sample is at least 
 
 \section{Exploratory Data Analysis}
 
-We focus our analysis mainly on chromosome 1, which has samples from 379551 sites. There are 33 samples for each site, each taken from an expensive WGBS procedure, this method is able to measure about 91\% of sites \cite{laird2010principles}. Our test sample only has about 2\% of the sites available from a cheaper procedure: methylation microarrays \cite{zhang2015predicting}.
+We focus our analysis mainly on chromosome 1, which has samples from 379551 sites. There are 34 samples for each site, each taken from an expensive WGBS procedure, this method is able to measure about 91\% of sites \cite{laird2010principles}. Our test sample only has about 2\% of the sites available from a cheaper procedure: methylation microarrays \cite{zhang2015predicting}.
 
 We are to use the limited information to impute the missing values in the sample. Because we can only use WGBS as the true value, there are some sites that we don't know the correct value for, even in testing. The imputation procedure may {\em not} be specified to only impute the sites we are testing for because this is a facet of our testing procedure. The methods constructed attempt to impute the entire genome. We are only able to provide an estimate for our testing error because we can only observe some of the true methylation values with the more expensive technique.
 
@@ -66,19 +66,19 @@ The microarray may only provide about 2\% of the chromosome's information, but i
     \centering
     \includegraphics[width=0.4\textwidth]{colocalisitecorr.png}
     \label{fig:colocalsite}
-    \caption{The above demonstrates estimates for the correlation of methylation values with the neighbours a given distance away from a sample site on the same tissue sample. The correlation across 32 of the 33 given tissues was taken. This was performed on 1000 random sites. The last chromosome was dropped due to its 98\% sparsity. The ``bottoming out" of correlation at about 0.25 as we distance ourselves from the site matches the observed background correlation from \cite{zhang2015predicting}. Error bars are $1\hat{\sigma}$.}
+    \caption{The above demonstrates estimates for the correlation of methylation values with the neighbours a given distance away from a sample site on the same tissue sample. The correlation across 33 of the 34 given tissues was taken. This was performed on 1000 random sites. The last chromosome was dropped due to its 98\% sparsity. The ``bottoming out" of correlation at about 0.25 as we distance ourselves from the site matches the observed background correlation from \cite{zhang2015predicting}. Error bars are $1\hat{\sigma}$.}
 \end{figure}
 
 We explore whether there's potential for (1) prediction based on genomic location or (2) prediction based on similarity to other chromosomes. Figure \ref{fig:genomictrends} shows the rolling mean of the methylation proportions - it confirms that while there are no obvious trends as a function of sequence, there are chromosomes with similar behavior.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.4\textwidth]{genomictrends.png}
+    \includegraphics[width=0.9\textwidth]{genomictrends.png}
     \label{fig:genomictrends}
     \caption{Rolling mean with 1000 bp windows of methylation values for varying tissues.}
 \end{figure}
 
-%TODO chromosome-level patterns.
+Finally, we discuss the sparsity of the chromosomes - all 34 training tissues except the last have no methylation proportions (betas) under 0.01 for any site. The last has about 98\% such values. Of the limited amount of known sites for the test chromosome, none of our sites have such low methylations either. In the following, the last chromosome will be excluded from certain aggregates to avoid skewing certain statistics. However, it may still prove useful for prediction, and may be included as an explanatory variable.
 
 \section{Methods}
 
@@ -89,9 +89,12 @@ We explore whether there's potential for (1) prediction based on genomic locatio
 
 \section{Results}
 
-\section{Discussion and Conclusion}
+\section{Conclusion}
+
 
 \subsubsection*{Acknowledgments}
+
+The author would like to thank Prof. Engelhardt and Brian Jo for their advice on this project and Princeton University for access to certain references.
 
 \bibliographystyle{acm}
 \bibliography{ref}
