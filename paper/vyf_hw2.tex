@@ -41,7 +41,7 @@ We focus our analysis mainly on chromosome 1, which has samples from 379551 site
 
 We are to use the limited information to impute the missing values in the sample. Because we can only use WGBS as the true value, there are some sites that we don't know the correct value for, even in testing. The imputation procedure may {\em not} be specified to only impute the sites we are testing for because this is a facet of our testing procedure. The methods constructed attempt to impute the entire genome. We are only able to provide an estimate for our testing error because we can only observe some of the true methylation values with the more expensive technique.
 
-The sites available at test time are consistent - the technology used to assay the methylation values samples sites consistently \cite{infinium}. This opens up opportunities to take advantage of learning patterns particular to the sites consistently tested by the methylation microarrays - for instance, we can mask one of the well-sampled chromosomes enabling a sort of ``cross-validation" on a reduced feature set.
+The sites available at test time are consistent - the technology used to assay the methylation values samples sites consistently \cite{infinium}. This opens up opportunities to take advantage of learning patterns particular to the sites consistently tested by the methylation microarrays - for instance, we can mask one of the well-sampled tissues enabling a sort of ``cross-validation" on a reduced feature set.
 
 \begin{figure}[H]
     \centering
@@ -57,7 +57,7 @@ The sites available at test time are consistent - the technology used to assay t
     \end{minipage}
     
     \label{fig:sampleknowndistrib}
-    \caption{The above demonstrates the distribution of the known sites in the test chromosome. The mean distance between sites is 50.3, with a standard deviation of 87.0. The QQ-plot demonstrates that the sampling is fairly uniform throughout the chromosome.}
+    \caption{The above demonstrates the distribution of the known sites in the test sample. The mean distance between sites is 50.3, with a standard deviation of 87.0. The QQ-plot demonstrates that the sampling is fairly uniform throughout the chromosome.}
 \end{figure}
 
 The microarray may only provide about 2\% of the chromosome's information, but it may give enough to find chromosome-wide patterns as in Figure \ref{fig:sampleknowndistrib}. The uniformity here, coupled with the observations of correlation amongst neighboring sites from Figure \ref{fig:colocalsite} informs us local values may be informative.
@@ -66,7 +66,16 @@ The microarray may only provide about 2\% of the chromosome's information, but i
     \centering
     \includegraphics[width=0.4\textwidth]{colocalisitecorr.png}
     \label{fig:colocalsite}
-    \caption{The above demonstrates estimates for the correlation of methylation values with the neighbours a given distance away from a sample site on the same chromosome. The correlation across 32 of the 33 given chromosomes was taken. The last chromosome was dropped due to its 98\% sparsity. The ``bottoming out" of correlation at about 0.25 as we distance ourselves from the site matches the observed background correlation from \cite{zhang2015predicting}.}
+    \caption{The above demonstrates estimates for the correlation of methylation values with the neighbours a given distance away from a sample site on the same tissue sample. The correlation across 32 of the 33 given tissues was taken. This was performed on 1000 random sites. The last chromosome was dropped due to its 98\% sparsity. The ``bottoming out" of correlation at about 0.25 as we distance ourselves from the site matches the observed background correlation from \cite{zhang2015predicting}. Error bars are $1\hat{\sigma}$.}
+\end{figure}
+
+We explore whether there's potential for (1) prediction based on genomic location or (2) prediction based on similarity to other chromosomes. Figure \ref{fig:genomictrends} shows the rolling mean of the methylation proportions - it confirms that while there are no obvious trends as a function of sequence, there are chromosomes with similar behavior.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.4\textwidth]{genomictrends.png}
+    \label{fig:genomictrends}
+    \caption{Rolling mean with 1000 bp windows of methylation values for varying tissues.}
 \end{figure}
 
 %TODO chromosome-level patterns.
@@ -76,7 +85,7 @@ The microarray may only provide about 2\% of the chromosome's information, but i
 %TODO basic collab filtering (memory/similarity based, svd).
 %TODO glm + look at coeffs to find predictive chromosomes. -> source for "similar methylation" if similar organs.
 %TODO add ENCODE data.
-%TODO gaussian process regression
+%TODO vector machine
 
 \section{Results}
 
