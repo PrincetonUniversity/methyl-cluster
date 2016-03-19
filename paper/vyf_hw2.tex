@@ -2,7 +2,8 @@
 \usepackage{cos424,times}
 \usepackage{hyperref}
 \usepackage{url}
-\usepackage{float}
+%\usepackage{float}
+\usepackage{floatrow}
 
 \usepackage{graphicx}
 
@@ -24,7 +25,8 @@ Princeton University\\
 \maketitle
 
 \begin{abstract}
-abstract
+
+We present an approach for imputing methylation values, a form of epigenetic marker, in tissue samples by relying on methylation values of other tissues and cis-regulatory genetic contexts. A combined collaborative filtering and elastic net linear model approach offer an out-of-sample $R^2$ of 0.874534 for predicting the methylation values of a tissue sample with only 2\% of the values known - there are a total of about 380K sites whose values must be predicted via regression.
 \end{abstract}
 
 \section{Introduction and Related Work}
@@ -56,17 +58,18 @@ The sites available at test time are consistent - the technology used to assay t
         %\caption{}
     \end{minipage}
     
-    \label{fig:sampleknowndistrib}
     \caption{The above demonstrates the distribution of the known sites in the test sample. The mean distance between sites is 50.3, with a standard deviation of 87.0. The QQ-plot demonstrates that the sampling is fairly uniform throughout the chromosome.}
+    \label{fig:sampleknowndistrib}
 \end{figure}
 
 The microarray may only provide about 2\% of the chromosome's information, but it may give enough to find chromosome-wide patterns as in Figure \ref{fig:sampleknowndistrib}. The uniformity here, coupled with the observations of correlation amongst neighboring sites from Figure \ref{fig:colocalsite} informs us local values may be informative.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.4\textwidth]{colocalisitecorr.png}
-    \label{fig:colocalsite}
-    \caption{The above demonstrates estimates for the correlation of methylation values with the neighbours a given distance away from a sample site on the same tissue sample. The correlation across 33 of the 34 given tissues was taken. This was performed on 1000 random sites. The last chromosome was dropped due to its 98\% sparsity. The ``bottoming out" of correlation at about 0.25 as we distance ourselves from the site matches the observed background correlation from \cite{zhang2015predicting}. Error bars are $1\hat{\sigma}$.}
+\floatbox[{\capbeside\thisfloatsetup{capbesideposition={left,center}}}]{figure}[\FBwidth]
+{\caption{The above demonstrates estimates for the correlation of methylation values with the neighbours a given distance away from a sample site on the same tissue sample. The correlation across 33 of the 34 given tissues was taken. This was performed on 1000 random sites. The last chromosome was dropped due to its 98\% sparsity. The ``bottoming out" of correlation at about 0.25 as we distance ourselves from the site matches the observed background correlation from \cite{zhang2015predicting}. Error bars are $1\hat{\sigma}$.}
+    \label{fig:colocalsite}}
+{\includegraphics[width=0.4\textwidth]{colocalisitecorr.png}}
 \end{figure}
 
 We explore whether there's potential for (1) prediction based on genomic location or (2) prediction based on similarity to other chromosomes. Figure \ref{fig:genomictrends} shows the rolling mean of the methylation proportions - it confirms that while there are no obvious trends as a function of sequence, there are chromosomes with similar behavior.
@@ -74,8 +77,8 @@ We explore whether there's potential for (1) prediction based on genomic locatio
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\textwidth]{genomictrends.png}
-    \label{fig:genomictrends}
     \caption{Rolling mean with 1000 bp windows of methylation values for varying tissues. In order, the standard deviation ratio from the original tissue methylation values to the rolled mean ones are 4.83, 4.62, and 11.34. Note that this is the square root of the inverse of proportion of variance maintained by the rolling mean.}
+    \label{fig:genomictrends}
 \end{figure}
 
 %TODO (once added) \CITE{} below too -> genetic context (intronic, ex, etc).
@@ -86,31 +89,85 @@ Recall there are 34 sample tissues. Models were evaluated by average cross-valid
 
 \begin{figure}[H]
     \centering
-    \includegraphics[scale=0.4]{chromacorr.png}
-    \label{fig:chromacorr}
+\floatbox[{\capbeside\thisfloatsetup{capbesideposition={left,center}}}]{figure}[\FBwidth]
+{
     \caption{Using only the training data, it was found that the closes training sample was chromosome 19. Thus, we estimate from the diagram above that chromosomes 19-24, inclusive, will be good folds to train our models on (by pretending they each only have limited methylation information).}
+    \label{fig:chromacorr}}
+    {\includegraphics[scale=0.5]{chromacorr.png}}
 \end{figure} 
 
 A fundamental assumption here is that the additional tissue data at test time on the holdout tissue sample will not significantly worsen the top model from cross-validation. This is a fair assumption since the model was selected with 33 similar features.
 
-The observations from the previous sections inform us that several approaches may be successful: interpolation between known and unknown values.
+The observations from the previous sections inform us that several approaches may be successful: interpolation between neighboring sites and identifying clusters of chromosomes according to methylation patterns. The latter has biological basis: the TA mentioned that chromosomes from the same tissue groups have similar methylation. One approach is to use our restricted amount of methylation knowledge to detect what linear combination of tissue samples, when viewed as vectors in the 380K-dimensional site space, best approximates the test sample.
 
-%TODO basic collab filtering (memory/similarity based, svd).
-%TODO glm + look at coeffs to find predictive chromosomes. -> source for "similar methylation" if similar organs.
-%TODO vector machine
+There are many strategies for finding the aforementioned combination. Figure \ref{fig:chromacorr} displays several clusters - a Gaussian Mixture Model (GMM) approach could be successful, but was intractable with constructed toolkits given the high dimensionality. A simpler approach that leveraged the cluster structure is the memory-based collaborative filtering approach from Wikipedia, which returns a weighted sum from the fully-assayed samples using a similarity metric defined only on the intersection of the known methylation values \cite{wiki:cf}. Similarly, we can learn this linear combination by fitting a linear model - in this case, we consider every site index a separate, independent data point, and train on the known methylation values. The difficulty here is that we are using only 2\% of the information to learn a model that is then applied to 98\% of it. We rely on the fact displayed by Figure \ref{fig:sampleknowndistrib} - even though this model is learned on a limited space, we are performing interpolation with our regression rather than extrapolation.
+
+Linear models considered were OLS, ridge, lasso, random forest (which is mostly linear), and elastic net. The sparse features, such as the indicators, would be harshly penalized by lasso alone. However, lasso still outperformed ridge due to its restriction of overfitting. As such, elastic net was attempted as a middle ground. Indeed, it outperformed the other models (only its results are displayed in the summary table, Figure \ref{fig:cvperf}).
+
+All hyperparameter were trained on a nested 8-fold CV loop, which split the test sample's methylation sites even further for training. The ``known tissues" still had some missing samples - these were imputed with the mean value of each individual sample. Fancier imputation was not necessary because there were so few missing sites - interpolation-based imputation yielded the same results.
+
+%TODO source for "similar methylation" if similar organs.
 
 \section{Results}
 
+\begin{figure}[H]
+    \centering
+    \begin{tabular}{l|ccc}
+method & RMSE & methylation accuracy & $R^2$ \\ \hline
+local site interpolation & 0.204777 & 0.889799 & $-$0.613112 \\
+within-tissue mean & 0.162478 & 0.937630 & $-$0.015392 \\
+across-tissue mean & 0.131869 & 0.953696 & \phantom{$-$}0.325614 \\
+1 nearest neighbor & 0.091203 & 0.968845 & \phantom{$-$}0.677763 \\
+cosine mCF & 0.130761 & 0.954496 & \phantom{$-$}0.336823 \\
+canberra mCF & 0.128541 & 0.955625 & \phantom{$-$}0.359184 \\
+correlation mCF & 0.102694 & 0.963925 & \phantom{$-$}0.591949 \\
+tissue elastic net & 0.069042 & 0.976348 & \phantom{$-$}0.814531 \\
+metadata elastic net & 0.154595 & 0.938566 & \phantom{$-$}0.080378 \\
+ensemble elastic net & 0.068833 & 0.976385 & \phantom{$-$}0.815618
+    \end{tabular}
+    \caption{RMSE and $R^2$ values are calculated on the test data - for this reason $R^2$ is not adjusted and may also be negative. The methylation accuracy is the performance of the regression when reduced to the 0-1 classification problem for whether a site is methylated. Metadata refers to strand direction and CRE indicators. mCF is the aforementioned memory-based collaborative filtering algorithm, which accepts as input a similarity measure. The ensemble elastic net combines the methylation, metadata, and correlation-based mCF values as explanatory variables.}
+    \label{fig:cvperf}
+\end{figure} 
+
+The three strongest non-ensemble models were combined after observation that their residuals on one of the folds are weakly correlated - the largest $R^2$ amongst the 3 pairs was 0.641. Taking our best best model, the ensemble elastic net, and making a finer grid search based on the optimal hyperparameters from the CV performed for Figure \ref{fig:cvperf}'s results. Its results are available in Figures \ref{fig:finalres} and \ref{fig:finalgen}.
+
+\begin{figure}[H]
+    \centering
+\floatbox[{\capbeside\thisfloatsetup{capbesideposition={left,center}}}]{figure}[\FBwidth]
+{    \caption{Ensemble elastic net regression model residuals on the holdout sample. RMSE is 0.059897, methylation prediction accuracy is 0.980256, and $R^2$ is 0.874534. Note the residuals are satisfactorily normal.}
+    \label{fig:finalres}}
+    {\includegraphics[scale=0.4]{ensembleres.png}}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\textwidth]{ensembleseq.png}
+    \caption{Rolling means of both the final regression model and the exact chromosome, with all indices included. The exact sample is still missing about 1\% of sites, which were locally interpolated for this image. The rolling mean computation reduces the variance of both sequences by at most a factor of 22.}
+    \label{fig:finalgen}
+\end{figure}
+
+%TODO compare to diff chromosomes.
+
 \section{Conclusion}
 
-%TODO multi-band GMM with posterior would be ideal but is not tractable
+This report demonstrates the predictive power for methylation values, both individually and when combined, of memory-based collaborative filtering with a correlation-based similarity metric, CRE context indicators, and methylation values of sites in the same position in the genomic sequence for different tissues. The final $R^2$ of 0.874 can still be improved.
+
+%TODO colocation regressors?
+Colocated site values were not used except in the interpolation imputation. Adjacent methylation values from different tissues could be added as additional regressors.
+
+%TODO regularized svd from coursera, netflix paper
+Furthermore, other methods that were either intractable or unavailable may have promise. For instance, beta regression has a more appropriate range for regression prediction. An iterative, regularized, SVD collaborative filtering algorithm may elicit different patterns than the simple memory-based one \cite{percy}.
+
+Perhaps the most promising model that encodes all patterns that have been observed, which the author would have needed to implement in TensorFlow (but did not have time for) is a $K$-cluster GMM over the entire 380K-dimensional methylation vector of each tissue. The variance matrix would agree with our colocated correlation observations - it would be restricted to a diagonal matrix, with values for the $+i$ and $-i$ bands adjacent to the diagonal corresponding to the neighboring sites of displacement $i$. Bands with $i> A$ would be held as zero. After training for a given $K,A$, one is equipped with a mixture model over all 380K sites. This allows for a closed-form posterior given only 2\% of the sites, the mean of which may be used for prediction (and the variance for confidence).
 
 
 \subsubsection*{Acknowledgments}
 
 The author would like to thank Prof. Engelhardt and Brian Jo for their advice on this project and provision of data. Also, Princeton University and the ENCODE project are responsible access to certain references and additional data sets \cite{encode2004encode}.
 
-%TODO cite sklearn, pandas, numpy, scipy, matplotlib
+Finally, the author heavily relied on \texttt{iPython} \cite{iPython} notebooks, \texttt{sklearn} \cite{scikit-learn} for algorithm implementations, \texttt{scipy} \cite{scipy} and \texttt{pandas} \cite{pandas} for scientific computing functions, and \texttt{matplotlib} \cite{matplotlib} for graphing.
+
+\pagebreak
 \bibliographystyle{acm}
 \bibliography{ref}
 
