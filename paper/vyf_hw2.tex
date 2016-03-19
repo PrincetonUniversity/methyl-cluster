@@ -86,15 +86,16 @@ Recall there are 34 sample tissues. Models were evaluated by average cross-valid
 
 \begin{figure}[H]
     \centering
-    \includegraphics[scale=0.3]{chromacorr.png}
+    \includegraphics[scale=0.4]{chromacorr.png}
     \label{fig:chromacorr}
     \caption{Using only the training data, it was found that the closes training sample was chromosome 19. Thus, we estimate from the diagram above that chromosomes 19-24, inclusive, will be good folds to train our models on (by pretending they each only have limited methylation information).}
 \end{figure} 
 
 A fundamental assumption here is that the additional tissue data at test time on the holdout tissue sample will not significantly worsen the top model from cross-validation. This is a fair assumption since the model was selected with 33 similar features.
 
+The observations from the previous sections inform us that several approaches may be successful: interpolation between known and unknown values.
+
 %TODO basic collab filtering (memory/similarity based, svd).
-%TODO gmm with covar on local items
 %TODO glm + look at coeffs to find predictive chromosomes. -> source for "similar methylation" if similar organs.
 %TODO vector machine
 
@@ -102,11 +103,14 @@ A fundamental assumption here is that the additional tissue data at test time on
 
 \section{Conclusion}
 
+%TODO multi-band GMM with posterior would be ideal but is not tractable
+
 
 \subsubsection*{Acknowledgments}
 
-The author would like to thank Prof. Engelhardt and Brian Jo for their advice on this project and Princeton University for access to certain references. %TODO thank encode.
+The author would like to thank Prof. Engelhardt and Brian Jo for their advice on this project and provision of data. Also, Princeton University and the ENCODE project are responsible access to certain references and additional data sets \cite{encode2004encode}.
 
+%TODO cite sklearn, pandas, numpy, scipy, matplotlib
 \bibliographystyle{acm}
 \bibliography{ref}
 
