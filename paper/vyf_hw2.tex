@@ -23,7 +23,7 @@ Princeton University\\
 \begin{document}
 
 \maketitle
-
+%TODO read again, edit, etc.
 \begin{abstract}
 
 We present an approach for imputing methylation values, a form of epigenetic marker, in tissue samples by relying on methylation values of other tissues and cis-regulatory genetic contexts. A combined collaborative filtering and elastic net linear model approach offer an out-of-sample $R^2$ of 0.874534 for predicting the methylation values of a tissue sample with only 2\% of the values known - there are a total of about 380K sites whose values must be predicted via regression.
@@ -155,7 +155,6 @@ This report demonstrates the predictive power for methylation values, both indiv
 %TODO colocation regressors?
 Colocated site values were not used except in the interpolation imputation. Adjacent methylation values from different tissues could be added as additional regressors.
 
-%TODO regularized svd from coursera, netflix paper
 Furthermore, other methods that were either intractable or unavailable may have promise. For instance, beta regression has a more appropriate range for regression prediction. An iterative, regularized, SVD collaborative filtering algorithm may elicit different patterns than the simple memory-based one \cite{percy}.
 
 Perhaps the most promising model that encodes all patterns that have been observed, which the author would have needed to implement in TensorFlow (but did not have time for) is a $K$-cluster GMM over the entire 380K-dimensional methylation vector of each tissue. The variance matrix would agree with our colocated correlation observations - it would be restricted to a diagonal matrix, with values for the $+i$ and $-i$ bands adjacent to the diagonal corresponding to the neighboring sites of displacement $i$. Bands with $i> A$ would be held as zero. After training for a given $K,A$, one is equipped with a mixture model over all 380K sites. This allows for a closed-form posterior given only 2\% of the sites, the mean of which may be used for prediction (and the variance for confidence).
@@ -167,7 +166,7 @@ The author would like to thank Prof. Engelhardt and Brian Jo for their advice on
 
 Finally, the author heavily relied on \texttt{iPython} \cite{iPython} notebooks, \texttt{sklearn} \cite{scikit-learn} for algorithm implementations, \texttt{scipy} \cite{scipy} and \texttt{pandas} \cite{pandas} for scientific computing functions, and \texttt{matplotlib} \cite{matplotlib} for graphing.
 
-\pagebreak
+
 \bibliographystyle{acm}
 \bibliography{ref}
 
