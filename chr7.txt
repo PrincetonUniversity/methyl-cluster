@@ -1,0 +1,9 @@
+loading chromosome data                           1.52         sec
+feature extraction on chromosome data             1.01         sec
+loading CRE data                                  4.61         sec
+creating interval tree                            30.40        sec
+merging CRE intersections                         118.71       sec
+training blunt model                              51.53        sec
+blunt alpha 0.000100
+training precise model                            343.80       sec
+Ensemble on test: rmse 0.059009 methyl acc 0.980331 R^2 0.870044 alpha 0.000169
