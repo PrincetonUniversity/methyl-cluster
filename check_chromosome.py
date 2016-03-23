@@ -73,7 +73,7 @@ def start(s):
     return time.time()
 
 def end(t):
-    print('{: <8.2f} sec'.format(time.time() - t))
+    print('{: <12.2f} sec'.format(time.time() - t))
     sys.stdout.flush()
 
 def chromosome_df(n):
@@ -131,6 +131,10 @@ def chromosome_df(n):
     train_df = train_df.merge(train_df[['start', 'end']].apply(partial(inside_tf, iv_chr), axis=1), copy=False,
                               left_index=True, right_index=True)
     end(t)
+
+    train_df.drop('chromosome', axis=1, inplace=True)
+    train_df.drop('start', axis=1, inplace=True)
+    train_df.drop('end', axis=1, inplace=True)
     
     t = start('training blunt model')
     best_combined = linear_model.Lasso()
@@ -144,14 +148,14 @@ def chromosome_df(n):
     t = start('training precise model')
     alpha_range = np.arange(0, 2 * alpha, alpha / 100)
     grid = GridSearchCV(best_combined, {'alpha': alpha_range}, cv=50, n_jobs=nproc)
-    grid.fit(df_with_cf.iloc[train_ix], test_df['filled'].iloc[train_ix])
+    grid.fit(train_df.iloc[train_ix], test_df['filled'].iloc[train_ix])
     end(t)
                                                                
-    guess = grid.predict(df_with_cf.iloc[test_ix])
+    guess = grid.predict(train_df.iloc[test_ix])
     exact = test_df['filled'].iloc[test_ix].values
 
     rmse = math.sqrt(mean_squared_error(exact, guess))
-    acc = correct_half(exact, guess)
+    acc = ((exact >= 0.5) == (guess >= 0.5)).mean()
     r2 = r2_score(exact, guess)
     res = guess - exact
 
